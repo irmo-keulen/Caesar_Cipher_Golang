@@ -19,7 +19,7 @@ func encode(str string, offset int) string {
 	for _, str := range orgStr {
 		strBuild := ""
 		for _, chr := range []rune(str) {
-			num, err := checkWrap(int(chr), offset)
+			num, err := shiftChar(int(chr), offset)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -30,17 +30,20 @@ func encode(str string, offset int) string {
 	return retString
 }
 
-func checkWrap(org int, off int) (int, error) {
+func shiftChar(org int, off int) (int, error) {
 	// Loop int between a MIN / MAX value
 	if org > MAX || org < MIN {
-		return 0, errors.New("Character out of bound : Value Error")
+		return -1, errors.New("non ASCII value parsed :Value Error")
 	}
-	val := org + off
+	switch val := org + off; {
 
-	if val < MIN {
-		return MAX - (MIN - val), nil
-	} else if val > MAX {
-		return MIN + (val - MAX), nil
+	case val > MAX:
+		return (val - 26), nil
+
+	case val < MIN:
+		return (val + 26), nil
+
+	default:
+		return val, nil
 	}
-	return val, nil
 }
