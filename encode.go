@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -19,31 +17,28 @@ func encode(str string, offset int) string {
 	for _, str := range orgStr {
 		strBuild := ""
 		for _, chr := range []rune(str) {
-			num, err := shiftChar(int(chr), offset)
-			if err != nil {
-				fmt.Println(err)
-			}
+			num := shiftChar(int(chr), offset)
 			strBuild = strBuild + string(num)
 		}
-		retString = retString + " " + strBuild
+		retString = retString + strBuild
 	}
 	return retString
 }
 
-func shiftChar(org int, off int) (int, error) {
+func shiftChar(org int, off int) int {
 	// Loop int between a MIN / MAX value
 	if org > MAX || org < MIN {
-		return -1, errors.New("non ASCII value parsed :Value Error")
+		return org
 	}
 	switch val := org + off; {
 
 	case val > MAX:
-		return (val - 26), nil
+		return val - 26
 
 	case val < MIN:
-		return (val + 26), nil
+		return val + 26
 
 	default:
-		return val, nil
+		return val
 	}
 }
