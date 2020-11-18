@@ -6,14 +6,19 @@ import (
 	"strings"
 )
 
-const bufferSize = 100
-
-func search(path string, word string) ([]int, error) {
+func searchInFile(path string, word string, bufferSize int) ([]int, error) {
 	// TODO Refactor function name
 	var retInt []int
+	var foundWords []string
+	possibilities := makeRange(0, 27)
 	length := len(word)
-	file, err := os.Open(path)
 
+	if bufferSize == 0 {
+		// bufferSize can be set using flag
+		bufferSize = 100
+	}
+
+	file, err := os.Open(path)
 	if err != nil {
 		return retInt, err
 	}
@@ -21,36 +26,27 @@ func search(path string, word string) ([]int, error) {
 
 	buffer := make([]byte, bufferSize)
 	for {
-		bytesread, err := file.Read(buffer)
-
+		bytesRead, err := file.Read(buffer)
 		if err != nil {
 			if err != io.EOF {
 				return retInt, err
 			}
 			break
 		}
-		words := strings.Split(string(buffer[:bytesread]), " ")
+		words := strings.Split(string(buffer[:bytesRead]), " ")
+
+		// TODO Add Go routine & optimize
 		for _, wrd := range words {
-			if len(wrd) == length {
-				for i := 0; i <= 27; i++ {
-					if word == encode(wrd, i) {
-						retInt = append(retInt, i)
+			if len(wrd) == length && !findStrInSlice(foundWords, wrd) {
+				foundWords = append(foundWords, wrd)
+				for idx := range possibilities {
+					if word == encode(wrd, idx) {
+						retInt = append(retInt, idx)
+						removeElmIntInSlice(possibilities, idx)
 					}
 				}
 			}
 		}
 	}
-	return rmDuplicate(retInt), nil
-}
-
-func rmDuplicate(intSlice []int) []int {
-	k := make(map[int]bool)
-	list := []int{}
-	for _, val := range intSlice {
-		if _, value := k[val]; !value {
-			k[val] = true
-			list = append(list, val)
-		}
-	}
-	return list
+	return retInt, nil
 }
